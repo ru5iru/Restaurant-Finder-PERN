@@ -1,4 +1,5 @@
 import React, {useContext, useEffect} from 'react'
+import { useNavigate } from "react-router-dom";
 import RestaurantFinder from '../apis/RestaurantFinder'
 import { RestaurantsContext } from '../context/RestaurantsContext';
 
@@ -6,16 +7,35 @@ const RestaurantList = (props) => {
 
     const {restaurants, setRestaurants} = useContext(RestaurantsContext)
 
+    let navigate = useNavigate()
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await RestaurantFinder.get("/")
                 console.log(response)
                 setRestaurants(response.data.data.restaurants)
-            } catch (err) {}
+            } catch (err) {
+                console.log(err);
+            }
         }
         fetchData();
     }, []);
+
+    const handleDelete = async (id) => {
+        try {
+            const response = await RestaurantFinder.delete(`/${id}`);
+            setRestaurants(restaurants.filter(restaurant => {
+                return restaurant.id !== id
+            }))
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const handleUpdate = (id) => {
+        navigate(`/restaurants/${id}/update`)
+    }
 
   return (
     <div>
@@ -39,8 +59,8 @@ const RestaurantList = (props) => {
                                 <td>{restaurant.location}</td>
                                 <td>{"$".repeat(restaurant.price_range)}</td>
                                 <td>reviews</td>
-                                <td><button className="btn btn-warning">Update</button></td>
-                                <td><button className="btn btn-danger">Delete</button></td>
+                                <td><button onClick={() => handleUpdate(restaurant.id)} className="btn btn-warning">Update</button></td>
+                                <td><button onClick={() => handleDelete(restaurant.id)} className="btn btn-danger">Delete</button></td>
                             </tr>
                         );
                     })}
